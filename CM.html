@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CM Bot — Защита от ссылок в Discord</title>
+    <!-- Шрифт Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6 (бесплатные иконки) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Стили остались без изменений — современные, тёмные, с акцентом на фиолетовый */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0f1e 0%, #1a1f2f 100%);
+            color: #e0e0e0;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            padding: 30px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            font-size: 2.5rem;
+            color: #5865F2;
+            filter: drop-shadow(0 0 10px rgba(88, 101, 242, 0.5));
+        }
+
+        .logo-text {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #fff 0%, #a0a8ff 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .hero {
+            padding: 80px 0 60px;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(88, 101, 242, 0.2);
+            border: 1px solid rgba(88, 101, 242, 0.5);
+            backdrop-filter: blur(5px);
+            color: #a0a8ff;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 8px 20px;
+            border-radius: 50px;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        h1 {
+            font-size: 3.8rem;
+            font-weight: 800;
+            line-height: 1.2;
+            max-width: 900px;
+            margin: 0 auto 25px;
+            background: linear-gradient(135deg, #ffffff 0%, #c0c4ff 80%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .highlight {
+            position: relative;
+            display: inline-block;
+            color: #ffffff;
+            background: linear-gradient(135deg, #5865F2, #7857e6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            text-decoration: underline;
+            text-decoration-color: #5865F2;
+            text-decoration-thickness: 4px;
+            text-underline-offset: 10px;
+        }
+
+        .hero-description {
+            font-size: 1.3rem;
+            max-width: 700px;
+            margin: 0 auto 40px;
+            color: #a8b3cf;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 60px 0;
+        }
+
+        .feature-card {
+            background: rgba(20, 25, 40, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 30px;
+            padding: 40px 30px;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(88, 101, 242, 0.4);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .feature-icon {
+            font-size: 2.8rem;
+            color: #5865F2;
+            margin-bottom: 25px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .feature-card p {
+            color: #b5bedc;
+            font-size: 1.1rem;
+        }
+
+        .command-section {
+            background: rgba(10, 15, 30, 0.8);
+            border-radius: 50px;
+            padding: 60px 50px;
+            margin: 80px 0;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .command-grid {
+            display: flex;
+            align-items: center;
+            gap: 50px;
+            flex-wrap: wrap;
+        }
+
+        .command-content {
+            flex: 2;
+            min-width: 300px;
+        }
+
+        .command-content h2 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: #fff;
+        }
+
+        .command-content p {
+            font-size: 1.2rem;
+            color: #b0b8d5;
+            margin-bottom: 30px;
+        }
+
+        .command-box {
+            background: #0b0e17;
+            border-radius: 30px;
+            padding: 20px 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 20px;
+            border: 1px solid #2a2f45;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            flex-wrap: wrap;
+        }
+
+        .command {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #fff;
+            background: #1e2335;
+            padding: 5px 20px;
+            border-radius: 60px;
+            letter-spacing: 1px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 18px 40px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 1.2rem;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: #5865F2;
+            color: white;
+            box-shadow: 0 10px 25px rgba(88, 101, 242, 0.4);
+        }
+
+        .btn-primary:hover {
+            background: #4752c4;
+            transform: scale(1.05);
+            box-shadow: 0 15px 35px rgba(88, 101, 242, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #5865F2;
+        }
+
+        /* Новая секция: как добавить бота */
+        .setup-section {
+            background: #13182a;
+            border-radius: 50px;
+            padding: 60px 50px;
+            margin: 60px 0;
+            border: 1px solid #2a2f4a;
+        }
+
+        .setup-title {
+            text-align: center;
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 50px;
+            color: #fff;
+        }
+
+        .setup-steps {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+        }
+
+        .step {
+            flex: 1 1 250px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 30px;
+            padding: 30px 25px;
+            text-align: center;
+            border: 1px solid #2f3550;
+            transition: transform 0.2s;
+        }
+
+        .step:hover {
+            transform: translateY(-5px);
+            border-color: #5865F2;
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: #5865F2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.8rem;
+            margin: 0 auto 25px;
+            color: #fff;
+            box-shadow: 0 0 20px #5865F2;
+        }
+
+        .step h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .step p {
+            color: #b5bedc;
+            font-size: 1.05rem;
+            margin-bottom: 20px;
+        }
+
+        .step .btn-small {
+            display: inline-block;
+            background: #2f3550;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 40px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .step .btn-small:hover {
+            background: #404972;
+        }
+
+        .doc-link {
+            color: #a0a8ff;
+            text-decoration: none;
+            border-bottom: 1px dashed #5865F2;
+        }
+
+        .doc-link:hover {
+            color: #fff;
+        }
+
+        .info-panel {
+            background: rgba(237, 66, 69, 0.1);
+            border: 1px solid rgba(237, 66, 69, 0.3);
+            border-radius: 40px;
+            padding: 30px 40px;
+            margin: 60px 0;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            backdrop-filter: blur(10px);
+        }
+
+        .info-panel i {
+            font-size: 3rem;
+            color: #ed4245;
+        }
+
+        .info-panel p {
+            font-size: 1.2rem;
+            color: #ffb5b5;
+            flex: 1;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            margin-top: 60px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            color: #6f7a9e;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            .command-box {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-shield-halos logo-icon"></i>
+                <div class="logo-text">CM <span>Bot</span></div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <!-- Герой с кнопками (ссылки обновлены) -->
+            <section class="hero">
+                <div class="hero-badge">
+                    <i class="fas fa-check-circle" style="margin-right: 5px;"></i> Эксклюзивно для Discord
+                </div>
+                <h1>
+                    Единственный бот, который <span class="highlight">правильно сканирует</span> и удаляет ссылки
+                </h1>
+                <p class="hero-description">
+                    "CM" — ваш надёжный страж. Ни один другой бот не справляется с ссылками так чисто и точно. Тотальный контроль над чатом.
+                </p>
+                <div class="btn-group">
+                    <!-- Кнопка добавления с ТВОЕЙ ссылкой -->
+                    <a href="https://discord.com/oauth2/authorize?client_id=1465679073807302798&permissions=1099511768096&integration_type=0&scope=bot" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+                        <i class="fab fa-discord"></i> Добавить на сервер
+                    </a>
+                    <!-- Кнопка документации (ведёт на якорь #setup) -->
+                    <a href="#setup" class="btn btn-secondary"><i class="fas fa-book-open"></i> Документация</a>
+                </div>
+            </section>
+
+            <!-- Карточки преимуществ -->
+            <section class="feature-grid">
+                <div class="feature-card">
+                    <i class="fas fa-shield-virus feature-icon"></i>
+                    <h3>Сканирование ссылок</h3>
+                    <p>Глубокий анализ каждого сообщения. Бот детектирует любые ссылки и решает, оставить их или удалить, следуя правилам.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-eraser feature-icon"></i>
+                    <h3>Мгновенное удаление</h3>
+                    <p>Никаких следов. Ссылки исчезают быстрее, чем кто-либо успевает на них нажать. Чистота — залог безопасности.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-command feature-icon"></i>
+                    <h3>Ручной контроль</h3>
+                    <p>Если бот сработал неверно (такое бывает крайне редко), просто введите команду <strong style="color:#fff;">/remove</strong></p>
+                </div>
+            </section>
+
+            <!-- Блок с командой /remove -->
+            <section class="command-section">
+                <div class="command-grid">
+                    <div class="command-content">
+                        <h2>Ошибки исключены, но <span style="color:#5865F2;">/remove</span> всегда наготове</h2>
+                        <p>Мы гордимся работой CM, но если вдруг произошло ложное срабатывание — вы имеете право на исправление.</p>
+                        <div class="command-box">
+                            <span class="command">/remove</span>
+                            <span class="command-desc">— моментальная очистка последней ссылки</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Новая секция: Документация и установка (якорь #setup) -->
+            <section id="setup" class="setup-section">
+                <h2 class="setup-title">Как добавить CM бота на свой сервер</h2>
+                <div class="setup-steps">
+                    <!-- Шаг 1 -->
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <h3>Приглашение</h3>
+                        <p>Нажми на синюю кнопку «Добавить на сервер» вверху страницы. Ты попадёшь на официальную страницу авторизации Discord.</p>
+                        <a href="https://discord.com/oauth2/authorize?client_id=1465679073807302798&permissions=1099511768096&integration_type=0&scope=bot" class="btn-small" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-discord"></i> Перейти
+                        </a>
+                    </div>
+                    <!-- Шаг 2 -->
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <h3>Выбор сервера</h3>
+                        <p>Войди в свой аккаунт Discord (если ещё не вошёл) и выбери сервер, куда хочешь добавить бота. Нужны права «Управлять сервером».</p>
+                    </div>
+                    <!-- Шаг 3 -->
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <h3>Подтверждение</h3>
+                        <p>Нажми «Продолжить», а затем «Авторизовать». Бот появится в списке участников. Готово! 🎉</p>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 40px; background: #1e2338; border-radius: 60px; padding: 20px;">
+                    <p style="font-size: 1.2rem;">
+                        <i class="fas fa-lightbulb" style="color: #f0db4f; margin-right: 10px;"></i>
+                        После установки просто введите <code style="background: #2a2f4a; padding: 5px 15px; border-radius: 30px;">/remove</code> в любом текстовом канале, чтобы удалить нежелательную ссылку.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Блок с предупреждением (как в описании) -->
+            <div class="info-panel">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>
+                    <strong>Важно!</strong> Если вы видите, что бот сработал неправильно — просто введите <span style="background: #ed4245; color: white; padding: 3px 10px; border-radius: 30px;">/remove</span>, и ссылка исчезнет. Мы верим в безопасность вашего сервера!
+                </p>
+                <i class="fas fa-shield-check" style="color:#5865F2;"></i>
+            </div>
+
+            <!-- Дублирующая кнопка внизу (тоже с твоей ссылкой) -->
+            <div style="text-align: center; margin: 50px 0;">
+                <h2 style="font-size: 2.5rem; margin-bottom: 30px; color: #fff;">Начни защищать сервер прямо сейчас</h2>
+                <a href="https://discord.com/oauth2/authorize?client_id=1465679073807302798&permissions=1099511768096&integration_type=0&scope=bot" class="btn btn-primary" style="font-size: 1.5rem; padding: 20px 60px;" target="_blank" rel="noopener noreferrer">
+                    <i class="fab fa-discord"></i> Установить CM
+                </a>
+                <p style="margin-top: 20px; color:#7f8bb3;">* Полностью на русском, настройка за минуту.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>© 2025 CM Bot. Защита Discord-серверов. <br> «Я верю в тебя — действуй.»</p>
+            <p style="margin-top: 15px; font-size: 0.9rem;">
+                <i class="fas fa-bolt" style="color:#5865F2;"></i> 
+                <a href="#setup" class="doc-link" style="color: #a0a8ff;">Документация</a> • 
+                <a href="https://discord.com/oauth2/authorize?client_id=1465679073807302798&permissions=1099511768096&integration_type=0&scope=bot" class="doc-link" target="_blank" rel="noopener noreferrer">Добавить бота</a>
+            </p>
+        </div>
+    </footer>
+</body>
+</html>
